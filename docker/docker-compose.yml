@@ -1,0 +1,29 @@
+version: '3.7'
+
+services:
+  rabbitmq:
+        image: rabbitmq
+        environment:
+          - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+          - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+
+        ports:
+          - 5672:5672
+
+  flower:
+    image: mher/flower:0.9.7
+    command: ['flower', '--broker=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672', '--port=5555']
+    ports:
+      - 5555:5555
+    depends_on:
+      - rabbitmq
+#
+#  worker:
+#    build:
+#      dockerfile: docker/worker.dockerfile
+#      context: ../
+#    environment:
+#      - BROKER_URL=amqp://${SERVER_ADDRESS}:5672
+#      - RESULT_BACKEND=rpc://${SERVER_ADDRESS}:5672
+#
+#
