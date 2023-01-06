@@ -35,7 +35,9 @@ class RabbitMQLogger:
         self.queue_name = result.method.queue
         self.infinite = infinite
         self.channel.queue_bind(
-            queue=self.queue_name, exchange=self.exchange, routing_key=routing_key
+            queue=self.queue_name,
+            exchange=self.exchange,
+            routing_key=routing_key,
         )
 
     def close_routing_key(self):

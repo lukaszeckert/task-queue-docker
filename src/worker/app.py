@@ -19,7 +19,7 @@ rabbit_logger = RabbitMQLogger(
 
 app = Celery(
     "task-queue",
-    backend=f"rpc://",
+    backend="rpc://",
     broker=f"pyamqp://{settings.user}:{settings.password}@{settings.rabbitmq_address}/",
 )
 app.conf.update(

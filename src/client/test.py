@@ -1,6 +1,5 @@
 import time
 
-import celery
 from celery import Celery
 
 from src.common.rabbitmq_logger import RabbitMQLogger
@@ -10,7 +9,8 @@ from src.common.tasks import RunInDocker
 settings = get_settings("environment")
 app = Celery(
     "task-queue",
-    broker=f"pyamqp://{settings.user}:{settings.password}@{settings.rabbitmq_address}/",
+    broker=f"pyamqp://{settings.user}:{settings.password}@"
+    f"{settings.rabbitmq_address}/",
     backend="rpc://",
 )
 rabbit_logger = RabbitMQLogger(
