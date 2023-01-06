@@ -1,0 +1,3 @@
+celery
+pika
+docker

@@ -10,7 +10,6 @@ class Settings:
     rabbitmq_logs_exchange: str
 
 
-
 def _env():
     return Settings(
         user=os.environ["RABBITMQ_USER"],
@@ -19,5 +18,9 @@ def _env():
         rabbitmq_logs_exchange=os.environ["RABBITMQ_LOGS_EXCHANGE"],
     )
 
-def _local():
-    return None
+
+def get_settings(env: str):
+    if env == "environment":
+        return _env()
+
+    raise ValueError(f"Unknown environment: {env}")
