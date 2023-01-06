@@ -6,12 +6,18 @@ from celery import Celery
 
 from src.common.rabbitmq_logger import RabbitMQLogger
 from src.common.settings import get_settings
-from src.common.tasks import Add
+from src.common.tasks import RunInDocker
 
 settings = get_settings("environment")
 
-rabbit_logger = RabbitMQLogger(user=settings.user, password=settings.password, exchange=settings.rabbitmq_logs_exchange, rabbitmq_address=settings.rabbitmq_address)
+rabbit_logger = RabbitMQLogger(
+    user=settings.user,
+    password=settings.password,
+    exchange=settings.rabbitmq_logs_exchange,
+    rabbitmq_address=settings.rabbitmq_address,
+)
 rabbit_logger.bind("*")
+
 
 def read_until_none():
     while True:
@@ -20,6 +26,7 @@ def read_until_none():
             yield key, msg
         else:
             break
+
 
 while True:
     massages = list(read_until_none())

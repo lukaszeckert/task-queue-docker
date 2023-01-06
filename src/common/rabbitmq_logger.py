@@ -4,6 +4,7 @@ import pika
 
 CUSTOM_END_ROUTING_KEY_MESSAGE = "----TASK_QUEUE_DOCKER_END_OF_STREAM----"
 
+
 class RabbitMQLogger:
     def __init__(self, rabbitmq_address: str, user: str, password: str, exchange: str):
         self.exchange = exchange
@@ -24,10 +25,12 @@ class RabbitMQLogger:
     def write(self, message: str, routing_key: Optional[str] = None):
         if routing_key is not None:
             self.channel.basic_publish(
-                exchange=self.exchange, routing_key=routing_key, body=message.encode("utf-8")
+                exchange=self.exchange,
+                routing_key=routing_key,
+                body=message.encode("utf-8"),
             )
 
-    def bind(self, routing_key: str = "", infinite = False):
+    def bind(self, routing_key: str = "", infinite=False):
         result = self.channel.queue_declare(queue="", exclusive=True)
         self.queue_name = result.method.queue
         self.infinite = infinite
@@ -67,4 +70,3 @@ class RabbitMQLogger:
         if msg == CUSTOM_END_ROUTING_KEY_MESSAGE and not self.infinite:
             raise StopIteration()
         return key, msg
-

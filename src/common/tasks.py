@@ -2,14 +2,13 @@ import time
 from typing import List, Optional, Union
 
 from celery import Task
-
-import docker
 from docker.errors import DockerException
 
+import docker
 from src.common.rabbitmq_logger import RabbitMQLogger
 
 
-class Add(Task):
+class RunInDocker(Task):
     def __init__(self, rabbitmq_logger: Optional[RabbitMQLogger] = None):
         self.rabbitmq_logger = rabbitmq_logger
         self.acks_late = True
@@ -17,16 +16,16 @@ class Add(Task):
 
         self.docker_client = docker.from_env()
 
-
     def run(
         self,
         image: str,
         entrypoint: Optional[Union[str, List[str]]] = None,
         mounts: Optional[List[str]] = None,
-
     ):
         try:
-            self.container = self.docker_client.containers.run(image=image, entrypoint=entrypoint, mounts=mounts, detach=True)
+            self.container = self.docker_client.containers.run(
+                image=image, entrypoint=entrypoint, mounts=mounts, detach=True
+            )
 
             for line in self.container.logs(stream=True):
                 if self.rabbitmq_logger:
@@ -43,5 +42,3 @@ class Add(Task):
         if self.container:
             self.container.kill()
             self.container = None
-
-

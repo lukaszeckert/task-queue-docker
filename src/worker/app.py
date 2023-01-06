@@ -3,13 +3,18 @@ from celery import Celery
 from src.common.rabbitmq_logger import RabbitMQLogger
 from src.common.settings import _env
 # from src.common.rabbitmq_logger import RabbitMQLogger
-from src.common.tasks import Add
+from src.common.tasks import RunInDocker
 
 settings = _env()
 
 print(settings)
 
-rabbit_logger = RabbitMQLogger(user=settings.user, password=settings.password, exchange=settings.rabbitmq_logs_exchange, rabbitmq_address=settings.rabbitmq_address)
+rabbit_logger = RabbitMQLogger(
+    user=settings.user,
+    password=settings.password,
+    exchange=settings.rabbitmq_logs_exchange,
+    rabbitmq_address=settings.rabbitmq_address,
+)
 
 app = Celery(
     "task-queue",
@@ -21,7 +26,7 @@ app.conf.update(
     CELERY_IGNORE_RESULT=False,
 )
 
-app.register_task(Add(rabbit_logger))
+app.register_task(RunInDocker(rabbit_logger))
 
 if __name__ == "__main__":
     app.start()
