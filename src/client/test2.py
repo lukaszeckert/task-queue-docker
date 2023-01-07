@@ -1,7 +1,6 @@
 import itertools
 import time
 
-
 from src.common.rabbitmq_logger import RabbitMQLogger
 from src.common.settings import get_settings
 
