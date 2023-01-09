@@ -2,9 +2,9 @@ from typing import List, Optional, Union
 
 from celery import Task
 from docker.errors import DockerException
+from docker_task_queue.common.rabbitmq_logger import RabbitMQLogger
 
 import docker
-from src.common.rabbitmq_logger import RabbitMQLogger
 
 
 class RunInDocker(Task):
