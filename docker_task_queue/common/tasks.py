@@ -1,11 +1,10 @@
-import time
 from typing import List, Optional, Union
 
 from celery import Task
 from docker.errors import DockerException
+from docker_task_queue.common.rabbitmq_logger import RabbitMQLogger
 
 import docker
-from src.common.rabbitmq_logger import RabbitMQLogger
 
 
 class RunInDocker(Task):
@@ -14,7 +13,11 @@ class RunInDocker(Task):
         self.acks_late = True
         self.reject_on_worker_lost = True
 
-        self.docker_client = docker.from_env()
+        self.docker_client = docker.from_env()  # type: ignore
+
+    def _write_log(self, msg: str) -> None:
+        if self.rabbitmq_logger is not None:
+            self.rabbitmq_logger.write(msg, self.request.id)
 
     def run(
         self,
@@ -31,10 +34,11 @@ class RunInDocker(Task):
                 if self.rabbitmq_logger:
                     self.rabbitmq_logger.write(line.decode("utf-8"), self.request.id)
         except DockerException as e:
-            self.rabbitmq_logger.write(str(e), self.request.id)
+            self._write_log(str(e))
         finally:
             self.container = None
-            self.rabbitmq_logger.send_end_stream_msg(self.request.id)
+            if self.rabbitmq_logger is not None:
+                self.rabbitmq_logger.send_end_stream_msg(self.request.id)
 
         return None
 

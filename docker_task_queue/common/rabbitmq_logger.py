@@ -23,19 +23,19 @@ class RabbitMQLogger:
         return connection
 
     def write(self, message: str, routing_key: Optional[str] = None):
-        if routing_key is not None:
-            self.channel.basic_publish(
-                exchange=self.exchange,
-                routing_key=routing_key,
-                body=message.encode("utf-8"),
-            )
+        self.channel.basic_publish(
+            exchange=self.exchange,
+            routing_key=routing_key,
+            body=message.encode("utf-8"),
+        )
 
-    def bind(self, routing_key: str = "", infinite=False):
-        result = self.channel.queue_declare(queue="", exclusive=True)
+    def bind(self, routing_key: str = "", queue_name: str = "", exclusive: bool = True):
+        result = self.channel.queue_declare(queue=queue_name, exclusive=exclusive)
         self.queue_name = result.method.queue
-        self.infinite = infinite
         self.channel.queue_bind(
-            queue=self.queue_name, exchange=self.exchange, routing_key=routing_key
+            queue=self.queue_name,
+            exchange=self.exchange,
+            routing_key=routing_key,
         )
 
     def close_routing_key(self):
@@ -46,18 +46,20 @@ class RabbitMQLogger:
         self.channel.close()
         self.connection.close()
 
-    def read_one(self) -> Tuple[str, bytes]:
+    def read_one(self) -> Tuple[Optional[str], int, str]:
         if self.queue_name is None:
             raise ValueError("Bind needs to be called before read")
 
-        routing_key, _, msg = self.channel.basic_get(self.queue_name)
-
+        status, _, msg = self.channel.basic_get(self.queue_name, True)
         if msg:
             msg = msg.decode("utf-8")
 
-        if routing_key:
-            routing_key = routing_key.routing_key
-        return routing_key, msg
+        message_count = 0
+        routing_key: Optional[str] = None
+        if status:
+            routing_key = status.routing_key
+            message_count = status.message_count
+        return routing_key, message_count, msg
 
     def send_end_stream_msg(self, routing_key):
         self.write(CUSTOM_END_ROUTING_KEY_MESSAGE, routing_key)
@@ -66,7 +68,7 @@ class RabbitMQLogger:
         return self
 
     def __next__(self):
-        key, msg = self.read_one()
+        key, message_count, msg = self.read_one()
         if msg == CUSTOM_END_ROUTING_KEY_MESSAGE and not self.infinite:
             raise StopIteration()
-        return key, msg
+        return key, message_count, msg

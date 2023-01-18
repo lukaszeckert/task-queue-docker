@@ -1,8 +1,8 @@
 from celery import Celery
-
 from src.common.rabbitmq_logger import RabbitMQLogger
 from src.common.settings import _env
-# from src.common.rabbitmq_logger import RabbitMQLogger
+
+# from docker_task_queue.common.rabbitmq_logger import RabbitMQLogger
 from src.common.tasks import RunInDocker
 
 settings = _env()
@@ -18,7 +18,7 @@ rabbit_logger = RabbitMQLogger(
 
 app = Celery(
     "task-queue",
-    backend=f"rpc://",
+    backend="rpc://",
     broker=f"pyamqp://{settings.user}:{settings.password}@{settings.rabbitmq_address}/",
 )
 app.conf.update(

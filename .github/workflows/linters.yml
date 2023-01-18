@@ -13,5 +13,5 @@ jobs:
     - run: pip install --upgrade pip
     - run: pip install "black<24" flake8==6.0.0 mypy==v0.991
     - run: black --diff --check $(git ls-files '*.py')
-    - run: flake8 src
+    - run: flake8 docker_task_queue/
     - run: mypy --strict $(git ls-files '*.py')
